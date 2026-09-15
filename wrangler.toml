@@ -2,11 +2,13 @@ name = "nourr-transport-website"
 main = "public/index.html"
 compatibility_date = "2024-01-01"
 
-[build]
-command = "echo 'No build required for static site'"
-
 [env.production]
 vars = { ENVIRONMENT = "production" }
 
-[observability]
-enabled = true
+[build]
+command = ""
+watch_paths = ["public/**/*"]
+
+[[routes]]
+pattern = "*"
+zone_name = "example.com"
