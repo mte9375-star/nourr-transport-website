@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NourTransport - Expédition France ↔ Tunisie</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/animations.css">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+</head>
+<body>
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">
+                    <span class="logo-icon">🚚</span>
+                    <h1>NourTransport</h1>
+                </div>
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="#home" onclick="navigate('home')">Accueil</a></li>
+                    <li><a href="#services" onclick="navigate('services')">Services</a></li>
+                    <li><a href="#contact" onclick="navigate('contact')">Contact</a></li>
+                    <li><button class="btn-login" onclick="showLoginModal()">Connexion</button></li>
+                </ul>
+                <div class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Modal Authentification -->
+        <div class="modal" id="authModal">
+            <div class="modal-content">
+                <button class="close" onclick="closeModal()">&times;</button>
+                <div class="modal-tabs">
+                    <button class="tab-btn active" onclick="switchTab('login')">Connexion</button>
+                    <button class="tab-btn" onclick="switchTab('register')">Inscription</button>
+                </div>
+
+                <!-- Tab Connexion -->
+                <div id="loginTab" class="tab-content active">
+                    <h2>Connexion</h2>
+                    <form onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="loginEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Mot de passe</label>
+                            <input type="password" id="loginPassword" required>
+                        </div>
+                        <button type="submit" class="btn-primary">Se connecter</button>
+                    </form>
+                    <div class="demo-info">
+                        <p><strong>Démo Admin:</strong> admin1@nourr.com / admin123</p>
+                    </div>
+                </div>
+
+                <!-- Tab Inscription -->
+                <div id="registerTab" class="tab-content">
+                    <h2>Créer un compte</h2>
+                    <form onsubmit="handleRegister(event)">
+                        <div class="form-group">
+                            <label>Nom complet</label>
+                            <input type="text" id="registerName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="registerEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Téléphone</label>
+                            <input type="tel" id="registerPhone" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Mot de passe</label>
+                            <input type="password" id="registerPassword" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Confirmer mot de passe</label>
+                            <input type="password" id="confirmPassword" required>
+                        </div>
+                        <button type="submit" class="btn-primary">S'inscrire</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Client -->
+        <div id="clientDashboard" class="dashboard hidden">
+            <div class="dashboard-container">
+                <div class="sidebar">
+                    <div class="user-profile">
+                        <div class="avatar">👤</div>
+                        <h3 id="userName">Utilisateur</h3>
+                        <p id="userEmail">email@example.com</p>
+                    </div>
+                    <ul class="sidebar-menu">
+                        <li><a href="#" onclick="switchDashboard('overview')" class="menu-item">📊 Aperçu</a></li>
+                        <li><a href="#" onclick="switchDashboard('new-demand')" class="menu-item">📝 Nouvelle demande</a></li>
+                        <li><a href="#" onclick="switchDashboard('my-shipments')" class="menu-item">🚚 Mes expéditions</a></li>
+                        <li><a href="#" onclick="switchDashboard('profile')" class="menu-item">⚙️ Profil</a></li>
+                        <li><a href="#" onclick="logout()" class="logout">🚪 Déconnexion</a></li>
+                    </ul>
+                </div>
+
+                <div class="main-content">
+                    <!-- Vue Aperçu -->
+                    <div id="overview" class="view-section active">
+                        <h2>Tableau de bord</h2>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">📦</div>
+                                <div class="stat-content">
+                                    <h3 id="totalShipments">0</h3>
+                                    <p>Expéditions totales</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">✅</div>
+                                <div class="stat-content">
+                                    <h3 id="completedShipments">0</h3>
+                                    <p>Livrées</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">🚚</div>
+                                <div class="stat-content">
+                                    <h3 id="pendingShipments">0</h3>
+                                    <p>En cours</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vue Nouvelle Demande -->
+                    <div id="new-demand" class="view-section hidden">
+                        <h2>Créer une nouvelle demande</h2>
+                        <form onsubmit="handleNewDemand(event)" class="form-section">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Destination</label>
+                                    <select id="destination" required>
+                                        <option value="">Choisir...</option>
+                                        <option value="France">France</option>
+                                        <option value="Tunisie">Tunisie</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Ville de départ</label>
+                                    <input type="text" id="departureCity" required>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Nombre de colis</label>
+                                    <input type="number" id="nbColis" min="1" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Poids total (kg)</label>
+                                    <input type="number" id="weight" min="0" step="0.5" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Nature des colis (sélection multiple)</label>
+                                <div class="checkbox-group">
+                                    <label><input type="checkbox" name="nature" value="Vêtements"> Vêtements</label>
+                                    <label><input type="checkbox" name="nature" value="Électronique"> Électronique</label>
+                                    <label><input type="checkbox" name="nature" value="Alimentaire"> Alimentaire</label>
+                                    <label><input type="checkbox" name="nature" value="Livres"> Livres</label>
+                                    <label><input type="checkbox" name="nature" value="Fragile"> Fragile</label>
+                                    <label><input type="checkbox" name="nature" value="Cosmétiques"> Cosmétiques</label>
+                                    <label><input type="checkbox" name="nature" value="Autres"> Autres</label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Télécharger ou photographier votre pièce d'identité</label>
+                                <div class="file-upload" onclick="document.getElementById('identityFile').click()">
+                                    <input type="file" id="identityFile" accept="image/*" required style="display:none;">
+                                    <span class="upload-text">📁 Cliquez ou déposez votre fichier</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Description additionnelle</label>
+                                <textarea id="description" placeholder="Décrivez le contenu de vos colis..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn-primary btn-large">Soumettre la demande</button>
+                        </form>
+                    </div>
+
+                    <!-- Vue Mes Expéditions -->
+                    <div id="my-shipments" class="view-section hidden">
+                        <h2>Mes expéditions</h2>
+                        <div id="shipmentsList" class="shipments-list">
+                            <p class="empty-state">Aucune expédition pour le moment</p>
+                        </div>
+                    </div>
+
+                    <!-- Vue Profil -->
+                    <div id="profile" class="view-section hidden">
+                        <h2>Mon profil</h2>
+                        <div class="profile-card">
+                            <div class="profile-info">
+                                <p><strong>Nom:</strong> <span id="profileName">-</span></p>
+                                <p><strong>Email:</strong> <span id="profileEmail">-</span></p>
+                                <p><strong>Téléphone:</strong> <span id="profilePhone">-</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Admin -->
+        <div id="adminDashboard" class="dashboard hidden">
+            <div class="dashboard-container">
+                <div class="sidebar">
+                    <div class="user-profile">
+                        <div class="avatar">👨‍💼</div>
+                        <h3>Admin</h3>
+                        <p id="adminEmail">admin@nourr.com</p>
+                    </div>
+                    <ul class="sidebar-menu">
+                        <li><a href="#" onclick="switchAdminView('dashboard')" class="menu-item">📊 Tableau de bord</a></li>
+                        <li><a href="#" onclick="switchAdminView('scanner')" class="menu-item">📱 Scanner QR</a></li>
+                        <li><a href="#" onclick="switchAdminView('roadmap')" class="menu-item">🗺️ Feuille de route</a></li>
+                        <li><a href="#" onclick="switchAdminView('labels')" class="menu-item">🏷️ Étiquettes</a></li>
+                        <li><a href="#" onclick="switchAdminView('dates')" class="menu-item">📅 Dates & Limites</a></li>
+                        <li><a href="#" onclick="logout()" class="logout">🚪 Déconnexion</a></li>
+                    </ul>
+                </div>
+
+                <div class="main-content">
+                    <!-- Vue Tableau de bord Admin -->
+                    <div id="dashboard-view" class="view-section active">
+                        <h2>Tableau de bord Admin</h2>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">📦</div>
+                                <div class="stat-content">
+                                    <h3 id="adminTotalDemands">0</h3>
+                                    <p>Demandes totales</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">💰</div>
+                                <div class="stat-content">
+                                    <h3 id="adminPaid">0</h3>
+                                    <p>Payées</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">❌</div>
+                                <div class="stat-content">
+                                    <h3 id="adminUnpaid">0</h3>
+                                    <p>Non payées</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vue Scanner QR -->
+                    <div id="scanner-view" class="view-section hidden">
+                        <h2>Scanner QR Code</h2>
+                        <div class="scanner-container">
+                            <input type="text" id="manualQRInput" placeholder="Entrez le code QR..." class="form-control">
+                            <button class="btn-primary" onclick="scanQR()">🔍 Scanner</button>
+                        </div>
+                        <div id="scanResult" class="hidden mt-20"></div>
+                    </div>
+
+                    <!-- Vue Feuille de Route -->
+                    <div id="roadmap-view" class="view-section hidden">
+                        <h2>Feuille de route</h2>
+                        <div class="controls">
+                            <button class="btn-secondary" onclick="printRoadmap()">🖨️ Imprimer</button>
+                            <button class="btn-secondary" onclick="loadRoadmapView()">🔄 Actualiser</button>
+                        </div>
+                        <div id="roadmapContent" class="roadmap-content">
+                            <p class="empty-state">Chargement des données...</p>
+                        </div>
+                    </div>
+
+                    <!-- Vue Étiquettes -->
+                    <div id="labels-view" class="view-section hidden">
+                        <h2>Étiquettes d'expédition</h2>
+                        <div id="labelsList" class="labels-list">
+                            <p class="empty-state">Aucune étiquette disponible</p>
+                        </div>
+                    </div>
+
+                    <!-- Vue Dates & Limites -->
+                    <div id="dates-view" class="view-section hidden">
+                        <h2>Gestion des dates de départ</h2>
+                        <form onsubmit="handleAddDepartureDate(event)" class="form-section">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Destination</label>
+                                    <select id="datDestination" required>
+                                        <option value="France">France</option>
+                                        <option value="Tunisie">Tunisie</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Date de départ</label>
+                                    <input type="datetime-local" id="departureDate" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Date limite de réservation</label>
+                                    <input type="datetime-local" id="bookingDeadline" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Capacité maximale (colis)</label>
+                                    <input type="number" id="capacity" min="1" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-primary">Ajouter date</button>
+                        </form>
+
+                        <h3 class="mt-30">Dates programmées</h3>
+                        <div id="departuresList" class="departures-list">
+                            <p class="empty-state">Aucune date programmée</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page d'accueil -->
+        <div id="home" class="page active">
+            <section class="hero">
+                <div class="hero-content">
+                    <h1>Transport de Colis France ↔ Tunisie</h1>
+                    <p>Rapide, fiable et sécurisé avec suivi QR Code</p>
+                    <div class="hero-buttons">
+                        <button class="btn-primary" onclick="showLoginModal()">Commencer</button>
+                        <button class="btn-secondary" onclick="navigate('services')">En savoir plus</button>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <div class="box-animation">📦</div>
+                </div>
+            </section>
+
+            <section class="features">
+                <h2>Nos avantages</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🚀</div>
+                        <h3>Rapide</h3>
+                        <p>Expédition en 24-48h</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>Sécurisé</h3>
+                        <p>Suivi GPS et QR Code</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">💰</div>
+                        <h3>Économique</h3>
+                        <p>Tarifs compétitifs</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📞</div>
+                        <h3>Support 24/7</h3>
+                        <p>Aide à tout moment</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/client.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
