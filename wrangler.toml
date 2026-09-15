@@ -2,13 +2,11 @@ name = "nourr-transport-website"
 main = "public/index.html"
 compatibility_date = "2024-01-01"
 
+[build]
+command = "echo 'No build required for static site'"
+
 [env.production]
 vars = { ENVIRONMENT = "production" }
 
-[build]
-command = "echo 'No build required'"
-watch_paths = ["public/**/*"]
-
-[build.upload]
-globs = ["public/**/*"]
-ignore = ["public/node_modules/**/*"]
+[observability]
+enabled = true
