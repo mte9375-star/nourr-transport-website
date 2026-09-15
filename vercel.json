@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "builds": [],
-  "routes": [],
+  "buildCommand": "",
+  "outputDirectory": "public",
   "framework": "static"
 }
