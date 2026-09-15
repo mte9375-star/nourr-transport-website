@@ -1,9 +1,7 @@
-// Fonctions d'authentification additionnelles
-
+// Initialiser les admins
 function initializeAdminUsers() {
     const existingUsers = JSON.parse(localStorage.getItem('users')) || [];
     
-    // Créer 3 admins par défaut
     const adminUsers = [
         { id: 1, name: 'Admin 1', email: 'admin1@nourr.com', phone: '+216 21 234 567', password: 'admin123', role: 'admin' },
         { id: 2, name: 'Admin 2', email: 'admin2@nourr.com', phone: '+216 21 234 568', password: 'admin123', role: 'admin' },
@@ -15,5 +13,4 @@ function initializeAdminUsers() {
     }
 }
 
-// Initialiser les admins au chargement
 initializeAdminUsers();

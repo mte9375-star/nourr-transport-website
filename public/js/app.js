@@ -57,7 +57,6 @@ function handleLogin(event) {
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
     
-    // Simulation - À remplacer par appel API
     const users = JSON.parse(localStorage.getItem('users')) || [];
     const user = users.find(u => u.email === email && u.password === password);
     
@@ -135,6 +134,7 @@ function logout() {
 // Dashboard Client
 function showClientDashboard() {
     document.getElementById('clientDashboard').classList.remove('hidden');
+    document.getElementById('clientDashboard').classList.add('active');
     document.getElementById('adminDashboard').classList.add('hidden');
     document.getElementById('home').classList.remove('active');
     
@@ -149,9 +149,11 @@ function showClientDashboard() {
 }
 
 function switchDashboard(section) {
-    document.querySelectorAll('.view-section').forEach(s => s.classList.add('hidden'));
-    document.getElementById(section).classList.remove('hidden');
-    document.getElementById(section).classList.add('active');
+    document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+    const elem = document.getElementById(section);
+    if (elem) {
+        elem.classList.add('active');
+    }
 }
 
 function handleNewDemand(event) {
@@ -163,7 +165,6 @@ function handleNewDemand(event) {
     const weight = document.getElementById('weight').value;
     const description = document.getElementById('description').value;
     
-    // Récupérer les natures sélectionnées
     const natures = [];
     document.querySelectorAll('input[name="nature"]:checked').forEach(checkbox => {
         natures.push(checkbox.value);
@@ -174,7 +175,6 @@ function handleNewDemand(event) {
         return;
     }
     
-    // Générer QR code unique
     const qrCode = 'NOUR-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
     
     const demand = {
@@ -222,14 +222,9 @@ function loadClientShipments() {
             <p><strong>Poids:</strong> ${shipment.weight} kg</p>
             <p><strong>Statut paiement:</strong> ${shipment.paid ? '✅ Payé' : '❌ Non payé'}</p>
             <p><strong>Date:</strong> ${new Date(shipment.createdAt).toLocaleDateString('fr-FR')}</p>
-            <div class="shipment-actions">
-                <button class="btn-secondary" onclick="downloadQRCode('${shipment.qrCode}')">📥 Télécharger QR</button>
-                <button class="btn-secondary" onclick="printLabel('${shipment.id}')">🖨️ Imprimer étiquette</button>
-            </div>
         </div>
     `).join('');
     
-    // Stats
     const total = userShipments.length;
     const completed = userShipments.filter(s => s.status === 'completed').length;
     const pending = userShipments.filter(s => s.status === 'pending').length;
@@ -239,26 +234,6 @@ function loadClientShipments() {
     document.getElementById('pendingShipments').textContent = pending;
 }
 
-function downloadQRCode(qrCode) {
-    alert('Téléchargement QR Code: ' + qrCode);
-}
-
-function printLabel(shipmentId) {
-    const shipment = shipments.find(s => s.id == shipmentId);
-    if (shipment) {
-        const printWindow = window.open('', '', 'height=400,width=600');
-        printWindow.document.write(`
-            <h2>Étiquette d'expédition</h2>
-            <p><strong>Destinataire:</strong> ${currentUser.name}</p>
-            <p><strong>Téléphone:</strong> ${currentUser.phone}</p>
-            <p><strong>Destination:</strong> ${shipment.destination}</p>
-            <p><strong>QR Code:</strong> ${shipment.qrCode}</p>
-            <p><strong>Nombre de colis:</strong> ${shipment.nbColis}</p>
-        `);
-        printWindow.print();
-    }
-}
-
 function editProfile() {
     alert('Fonction de modification de profil à implémenter');
 }
@@ -266,6 +241,7 @@ function editProfile() {
 // Dashboard Admin
 function showAdminDashboard() {
     document.getElementById('adminDashboard').classList.remove('hidden');
+    document.getElementById('adminDashboard').classList.add('active');
     document.getElementById('clientDashboard').classList.add('hidden');
     document.getElementById('home').classList.remove('active');
     
@@ -276,9 +252,11 @@ function showAdminDashboard() {
 }
 
 function switchAdminView(view) {
-    document.querySelectorAll('.view-section').forEach(s => s.classList.add('hidden'));
-    document.getElementById(view + '-view').classList.remove('hidden');
-    document.getElementById(view + '-view').classList.add('active');
+    document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+    const elem = document.getElementById(view + '-view');
+    if (elem) {
+        elem.classList.add('active');
+    }
 }
 
 function loadAdminDashboard() {
@@ -300,15 +278,17 @@ function scanQR() {
     
     const shipment = shipments.find(s => s.qrCode === manualInput);
     if (shipment) {
+        const user = JSON.parse(localStorage.getItem('users')).find(u => u.id === shipment.userId);
         const result = document.getElementById('scanResult');
         result.classList.remove('hidden');
         result.innerHTML = `
-            <h3>Colis trouvé</h3>
-            <p><strong>Client:</strong> ${currentUser.name}</p>
+            <h3>Colis trouvé ✓</h3>
+            <p><strong>Client:</strong> ${user.name}</p>
+            <p><strong>Téléphone:</strong> ${user.phone}</p>
             <p><strong>Destination:</strong> ${shipment.destination}</p>
             <p><strong>Nombre de colis:</strong> ${shipment.nbColis}</p>
             <p><strong>Statut:</strong> ${shipment.status}</p>
-            <button class="btn-primary" onclick="generateLabel('${shipment.id}')">📄 Générer étiquette</button>
+            <button class="btn-primary" onclick="generateLabel('${shipment.id}'">Générer étiquette</button>
         `;
     } else {
         alert('Code QR non trouvé');
@@ -323,22 +303,17 @@ function generateLabel(shipmentId) {
         printWindow.document.write(`
             <style>
                 body { font-family: Arial; padding: 20px; }
-                .label { border: 2px solid #000; padding: 30px; text-align: center; page-break-after: always; }
-                h2 { margin: 10px 0; }
-                p { margin: 8px 0; font-size: 14px; }
-                .qr { font-size: 24px; margin: 20px 0; }
-                .payment { margin-top: 20px; padding: 10px; border: 2px solid #ff6b35; }
+                .label { border: 3px solid #FF6B35; padding: 30px; text-align: center; }
+                h2 { color: #FF6B35; }
+                .payment { margin-top: 20px; padding: 15px; border: 3px solid #FF6B35; font-weight: bold; }
             </style>
             <div class="label">
                 <h2>NOURR TRANSPORT</h2>
                 <p><strong>Destination:</strong> ${shipment.destination}</p>
                 <p><strong>Nom:</strong> ${user.name}</p>
                 <p><strong>Téléphone:</strong> ${user.phone}</p>
-                <p><strong>Nombre de colis:</strong> ${shipment.nbColis}</p>
-                <div class="qr">QR: ${shipment.qrCode}</div>
-                <div class="payment">
-                    <strong>STATUT PAIEMENT:</strong> ${shipment.paid ? '✅ PAYÉ' : '❌ NON PAYÉ'}
-                </div>
+                <p><strong>QR:</strong> ${shipment.qrCode}</p>
+                <div class="payment">PAIEMENT: ${shipment.paid ? '✅ PAYÉ' : '❌ NON PAYÉ'}</div>
             </div>
         `);
         printWindow.print();
@@ -350,7 +325,7 @@ function printRoadmap() {
 }
 
 function exportRoadmap() {
-    alert('Export PDF en cours de développement');
+    alert('Export PDF en cours');
 }
 
 function handleAddDepartureDate(event) {
@@ -364,8 +339,8 @@ function handleAddDepartureDate(event) {
     const newDate = {
         id: Date.now(),
         destination,
-        departureDate: new Date(departureDate).toLocaleString('fr-FR'),
-        bookingDeadline: new Date(bookingDeadline).toLocaleString('fr-FR'),
+        departureDate,
+        bookingDeadline,
         capacity,
         createdAt: new Date().toISOString()
     };
@@ -387,12 +362,12 @@ function loadDepartureDates() {
     }
     
     list.innerHTML = departureDates.map(date => `
-        <div class="date-card">
+        <div style="background: white; padding: 15px; margin-bottom: 10px; border-left: 4px solid #FF6B35;">
             <h4>${date.destination}</h4>
             <p><strong>Départ:</strong> ${date.departureDate}</p>
-            <p><strong>Limite réservation:</strong> ${date.bookingDeadline}</p>
+            <p><strong>Limite:</strong> ${date.bookingDeadline}</p>
             <p><strong>Capacité:</strong> ${date.capacity} colis</p>
-            <button class="btn-danger" onclick="deleteDate(${date.id})">Supprimer</button>
+            <button class="btn-secondary" onclick="deleteDate(${date.id})">Supprimer</button>
         </div>
     `).join('');
 }
@@ -408,18 +383,41 @@ function loadFromLocalStorage() {
     departureDates = JSON.parse(localStorage.getItem('departureDates')) || [];
 }
 
-function initializeEventListeners() {
-    // Hamburger menu
-    const hamburger = document.getElementById('hamburger');
-    const navMenu = document.getElementById('navMenu');
+function loadRoadmapView() {
+    const roadmapContent = document.getElementById('roadmapContent');
     
-    if (hamburger) {
-        hamburger.addEventListener('click', () => {
-            navMenu.style.display = navMenu.style.display === 'flex' ? 'none' : 'flex';
-        });
+    const byCity = {};
+    shipments.forEach(shipment => {
+        const city = shipment.departureCity;
+        if (!byCity[city]) byCity[city] = [];
+        byCity[city].push(shipment);
+    });
+    
+    if (Object.keys(byCity).length === 0) {
+        roadmapContent.innerHTML = '<p class="empty-state">Aucune expédition</p>';
+        return;
     }
     
-    // File upload
+    let html = '';
+    Object.keys(byCity).sort().forEach(city => {
+        html += `<h3>📍 ${city}</h3>`;
+        html += byCity[city].map(shipment => {
+            const user = JSON.parse(localStorage.getItem('users')).find(u => u.id === shipment.userId);
+            return `
+                <div class="roadmap-item">
+                    <span>${user.name}</span>
+                    <span>${shipment.nbColis} colis → ${shipment.destination}</span>
+                    <span>${user.phone}</span>
+                    <span>${shipment.paid ? '✅ PAYÉ' : '❌ NON PAYÉ'}</span>
+                </div>
+            `;
+        }).join('');
+    });
+    
+    roadmapContent.innerHTML = html;
+}
+
+function initializeEventListeners() {
     const fileUpload = document.querySelector('.file-upload');
     if (fileUpload) {
         fileUpload.addEventListener('click', () => {
